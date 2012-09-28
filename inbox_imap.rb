@@ -14,7 +14,7 @@ password = "s0cialtang0"
 boxes = ["INBOX"]  # list all the IMAP folders to include in the calculations
 imap = Net::IMAP.new(server, 993, true, nil, false)
 imap.login(username, password)
-
+imap.create('[Gmail]/Archive')
 boxes.inject([]) do |sum, box|
     imap.select("INBOX")
     imap.search(["ALL"]).each do |m|
@@ -27,7 +27,7 @@ boxes.inject([]) do |sum, box|
       puts mail.subject
       puts body
       puts from
-      imap.copy(m,"[Gmail]/Spam")
+      imap.copy(m,"[Gmail]/Archive")
       imap.store(m, "+FLAGS", [:Deleted])
     end
 end
