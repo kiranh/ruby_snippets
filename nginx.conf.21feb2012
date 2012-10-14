@@ -1,5 +1,5 @@
 #user  nobody;
-worker_processes  2;
+worker_processes  5;
 
 error_log  /var/log/nginx.log;
 pid        /var/run/nginx.pid;
@@ -41,7 +41,7 @@ http {
   gzip_proxied any;
   gzip_min_length 500;
   gzip_disable "MSIE [1-6]\.";
-  gzip_types text/plain text/html text/xml text/css
+  gzip_types text/plain text/xml text/css
              text/comma-separated-values
              text/javascript application/x-javascript
              application/atom+xml;
@@ -63,8 +63,8 @@ http {
         listen       443;
 
         ssl                  on;
-        ssl_certificate      /etc/ssl/certs/server.crt;
-        ssl_certificate_key  /etc/ssl/private/server.key;
+        ssl_certificate      /etc/ssl/certs/socialtango.crt;
+        ssl_certificate_key  /etc/ssl/private/socialtango.key;
 
         ssl_session_timeout  5m;
 
@@ -72,15 +72,15 @@ http {
         ssl_ciphers  HIGH:!aNULL:!MD5;
         ssl_prefer_server_ciphers   on;
         
-        root /home/ubuntu/Kiran/tango/public;
+        root /home/S102405/tango/public;
         #passenger_enabled off;
-        #rails_env development;
+        rails_env production;
         location / {
           # Add this to the location directive.
           proxy_set_header   X-Forwarded-Proto https;
 
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-proxy_set_header Host $http_host;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header Host $http_host;
 
           #all requests are sent to the UNIX socket
           proxy_pass  http://my_site;
@@ -89,21 +89,18 @@ proxy_set_header Host $http_host;
           client_max_body_size       4G;
           client_body_buffer_size    128k;
 
-          proxy_connect_timeout      90;
-          proxy_send_timeout         90;
-          proxy_read_timeout         90;
-
           proxy_buffer_size          4k;
           proxy_buffers              4 32k;
           proxy_busy_buffers_size    64k;
           proxy_temp_file_write_size 64k;
+   
         }
         # if the request is for a static resource, nginx should serve it directly
         # and add a far future expires header to it, making the browser
         # cache the resource and navigate faster over the website
         # this probably needs some work with Rails 3.1's asset pipe_line
         location ~ ^/(images|javascripts|stylesheets|system)/  {
-          root /home/ubuntu/Kiran/tango/public;
+          root /home/S102405/tango/public;
           expires max;
           break;
         }
@@ -111,6 +108,9 @@ proxy_set_header Host $http_host;
          expires max;
          break;
        }
+        location = /robots.txt {
+          root /home/S102405/tango/public;
+        }
     }
 
 }
