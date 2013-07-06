@@ -1,0 +1,35 @@
+require "net/imap"
+require "progressbar" 
+require "active_support/all"  # sort_by!
+
+class Array
+    def histogram ; self.sort.inject({}){|a,x|a[x]=a[x].to_i+1;a} ; end
+end
+
+server   = "imap.gmail.com"
+username = "foobar@gmail.com"
+password = "foobar"
+
+boxes = ["INBOX"]  # list all the IMAP folders to include in the calculations
+imap = Net::IMAP.new(server, 993, true, nil, false)
+imap.login(username, password)
+
+mail_ids = boxes.inject([]) do |sum, box|
+    imap.select("INBOX")
+      sum += imap.search(["ALL"])
+end
+
+puts "Found #{mail_ids.count} Mails in Boxes #{boxes.join(", ")}. Now Fetching Mail Headers..."
+
+pbar = ProgressBar.new "mails:", mail_ids.count
+
+most = mail_ids.map do |id|
+    pbar.inc
+    sender = imap.fetch(id, "ENVELOPE").first.attr["ENVELOPE"].sender.first
+      "#{sender.mailbox}@#{sender.host}"
+end.histogram
+
+pbar.finish
+most = most.to_a.sort_by{|address,count| -count}
+puts most.map{|address,count| "#{address}; #{count}"}
+
